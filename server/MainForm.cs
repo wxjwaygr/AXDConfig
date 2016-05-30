@@ -7,6 +7,7 @@
  * 要改变这种模板请点击 工具|选项|代码编写|编辑标准头文件
  */
 using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -25,7 +26,23 @@ namespace server
 	/// </summary>
 	public partial class MainForm : Form
 	{
-		HttpHelper http=new HttpHelper ();
+        enum AdapaterState
+        {
+            All,
+            EthernetWirelessUseing
+        }
+        #region 字段
+        /// <summary>
+        /// 控件cbxNetworkAdapter选中的Index,用于修改IP地址重新加载再选中
+        /// </summary>
+        private int selectIndex = 0;
+
+        /// <summary>
+        /// 查询到指定状态网络适配器
+        /// </summary>
+        private AdapaterState state;
+
+        HttpHelper http =new HttpHelper ();
 		HttpItem item;
 		//Ping p1=new	Ping();
 		private void showping()
@@ -69,27 +86,49 @@ namespace server
 		}
 		private void tping4()
 		{
-			Ping p4 = new Ping();
-			p4.PingCompleted += new PingCompletedEventHandler(this.PingCompletedCallBack4);//设置PingCompleted事件处理程序
-			p4.SendAsync("www.163.com", null);
+            try
+            {
+                Ping p4 = new Ping();
+                p4.PingCompleted += new PingCompletedEventHandler(this.PingCompletedCallBack4);//设置PingCompleted事件处理程序
+                p4.SendAsync("www.163.com", null);
+            }
+            catch
+            { }
 		}
 		private void tping3()
 		{
-			Ping p3 = new Ping();
-			p3.PingCompleted += new PingCompletedEventHandler(this.PingCompletedCallBack3);//设置PingCompleted事件处理程序
-			p3.SendAsync("192.168.3.100", null);
+            try
+            {
+                Ping p3 = new Ping();
+                p3.PingCompleted += new PingCompletedEventHandler(this.PingCompletedCallBack3);//设置PingCompleted事件处理程序
+                p3.SendAsync("192.168.3.100", null);
+            }
+            catch
+            {
+
+            }
 		}
 		private void tping2()
 		{
-			Ping p2 = new Ping();
-			p2.PingCompleted += new PingCompletedEventHandler(this.PingCompletedCallBack2);//设置PingCompleted事件处理程序
-			p2.SendAsync("10.254.0.1", null);
+            try
+            {
+                Ping p2 = new Ping();
+                p2.PingCompleted += new PingCompletedEventHandler(this.PingCompletedCallBack2);//设置PingCompleted事件处理程序
+                p2.SendAsync("10.254.0.1", null);
+            }
+            catch
+            { }
 		}
 		private void tping()
 		{
-			Ping p1 = new Ping();
-			p1.PingCompleted += new PingCompletedEventHandler(this.PingCompletedCallBack);//设置PingCompleted事件处理程序
-			p1.SendAsync("192.168.253.200", null);
+            try
+            {
+                Ping p1 = new Ping();
+                p1.PingCompleted += new PingCompletedEventHandler(this.PingCompletedCallBack);//设置PingCompleted事件处理程序
+                p1.SendAsync("192.168.253.200", null);
+            }
+            catch
+            { }
 		}
 		delegate void TextOption();//定义一个委托
 		delegate void TextOption2();//定义一个委托
@@ -240,84 +279,159 @@ namespace server
 			// TODO: Add constructor code after the InitializeComponent() call.
 			//
 		}
-		void btnHtmlClick(object sender, EventArgs e)
-		{
-			HttpItem item = new HttpItem()
-			{
-				URL =this.tboxAddress.Text.Trim(),//URL这里都是测试     必需项
-				Method = "get",//URL     可选项 默认为Get
-			};
-			HttpResult result = http.GetHtml(item);
-			richTextBox1.Text=result.ToString();
-			
-		}
+        void btnHtmlClick(object sender, EventArgs e)
+        {
+            //HttpItem item = new HttpItem()
+            //{
+            //	URL =this.tboxAddress.Text.Trim(),//URL这里都是测试     必需项
+            //	Method = "get",//URL     可选项 默认为Get
+            //};
+            //HttpResult result = http.GetHtml(item);
+            //richTextBox1.Text=result.ToString();
+            try
+            {
+                item = new HttpItem()
+                {
+                    URL = "http://192.168.253.200/goform/formPassword",//URL这里都是测试URl   必需项
+                    Encoding = null,//编码格式（utf-8,gb2312,gbk）     可选项 默认类会自动识别
+                                    //Encoding = Encoding.Default,
+                    Method = "post",//URL     可选项 默认为Get
+                    ContentType = "application/x-www-form-urlencoded",
+                    Postdata = "password=00509c4eee4657da3350647879179e3e",
+                    Allowautoredirect = true
+                };
+                //得到新的HTML代码
+                HttpResult result = http.GetHtml(item);
+                MessageBox.Show(result.StatusDescription);
+                item = new HttpItem()
+                {
+                    URL = "http://192.168.253.200/cgi-bin/upload.cgi",
+                    Encoding = null,//编码格式（utf-8,gb2312,gbk）     可选项 默认类会自动识别
+                                    //Encoding = Encoding.Default,
+                    Method = "post",//URL     可选项 默认为Get
+                    ContentType = "application/octet-stream",
+                   // PostdataByte = "password=00509c4eee4657da3350647879179e3e",
+                    Allowautoredirect = true
+                };
+                result = http.GetHtml(item);//目前这个里面是未登入的状态
+                                            //表示访问成功，具体的大家就参考HttpStatusCode类
+                label2.Text = result.Html;
+                //webbrow webBrow = new webbrow(item.URL);
+            }
+            catch
+            {
 
+            }
+            }
 		void Label1Click(object sender, EventArgs e)
 		{
 			
 		}
 		void Button2Click(object sender, EventArgs e)
 		{
-			
-			
-			item = new HttpItem()
-			{
-				URL = "http://192.168.253.200/goform/formPassword",//URL这里都是测试URl   必需项
-				Encoding = null,//编码格式（utf-8,gb2312,gbk）     可选项 默认类会自动识别
-				//Encoding = Encoding.Default,
-				Method = "post",//URL     可选项 默认为Get
-				ContentType = "application/x-www-form-urlencoded",
-				Postdata = "password=00509c4eee4657da3350647879179e3e",
-				Allowautoredirect=true
-			};
-			//得到新的HTML代码
-			HttpResult result = http.GetHtml(item);
-			richTextBox1.Clear();
-			item = new HttpItem()
-			{
-				URL = "http://192.168.253.200/index.asp",
-			};
-			result = http.GetHtml(item);//目前这个里面是未登入的状态
-			//表示访问成功，具体的大家就参考HttpStatusCode类
-			richTextBox1.Text=result.Html;
-			webbrow webBrow=new webbrow(item.URL);
-			//webBrow.Show();
-			//调用IE浏览器
-			//System.Diagnostics.Process.Start("iexplore.exe", item.URL);
-			System.Diagnostics.Process process = System.Diagnostics.Process.Start("iexplore.exe",item.URL );
-			//调用系统默认的浏览器
-			//System.Diagnostics.Process.Start( item.URL);
-
+            try
+            {
+                item = new HttpItem()
+                {
+                    URL = "http://192.168.253.200/goform/formPassword",//URL这里都是测试URl   必需项
+                    Encoding = null,//编码格式（utf-8,gb2312,gbk）     可选项 默认类会自动识别
+                                    //Encoding = Encoding.Default,
+                    Method = "post",//URL     可选项 默认为Get
+                    ContentType = "application/x-www-form-urlencoded",
+                    Postdata = "password=00509c4eee4657da3350647879179e3e",
+                    Allowautoredirect = true
+                };
+                //得到新的HTML代码
+                HttpResult result = http.GetHtml(item);
+                MessageBox.Show(result.StatusDescription);
+                MessageBox.Show(result.StatusCode.ToString());
+                richTextBox1.Clear();
+                item = new HttpItem()
+                {
+                    URL = "http://192.168.253.200/index.asp",
+                };
+                result = http.GetHtml(item);//目前这个里面是未登入的状态
+                                            //表示访问成功，具体的大家就参考HttpStatusCode类
+                richTextBox1.Text = result.Html;
+                webbrow webBrow = new webbrow(item.URL);
+                //webBrow.Show();
+                //调用IE浏览器
+                //System.Diagnostics.Process.Start("iexplore.exe", item.URL);
+                System.Diagnostics.Process process = System.Diagnostics.Process.Start("iexplore.exe", item.URL);
+                //调用系统默认的浏览器
+                //System.Diagnostics.Process.Start( item.URL);
+            }
+            catch
+            {
+                MessageBox.Show("无法打开");
+            }
 		}
 		void MainFormLoad(object sender, EventArgs e)
 		{
 			this.listBox2.Text="开始链接。。。。。";
 			showping();
-		}
+            listBox2.SelectedIndex = 0;
+           
+        }
 		void Button3Click(object sender, EventArgs e)
 		{
-			Uri uri = new Uri("http://192.168.253.200/login.asp?password=1234.abcd");
-			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-			var cache = new CredentialCache();
-			cache.Add(uri, "Basic", new NetworkCredential("admin", "admin"));
-			request.Credentials = cache;
-			HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-			StreamReader read = new StreamReader(response.GetResponseStream(), Encoding.Default);
-			string text = read.ReadToEnd();
-			richTextBox1.Text=text;
-		}
-		void StatusStrip1ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+            item = new HttpItem()
+            {
+                URL = "http://10.254.0.1/goform/formPassword",//URL这里都是测试URl   必需项
+                Encoding = null,//编码格式（utf-8,gb2312,gbk）     可选项 默认类会自动识别
+                                //Encoding = Encoding.Default,
+                Method = "post",//URL     可选项 默认为Get
+                ContentType = "application/x-www-form-urlencoded",
+                Postdata = "password=abcd.1234",
+                Allowautoredirect = true
+            };
+            //得到新的HTML代码
+            HttpResult result = http.GetHtml(item);
+            richTextBox1.Clear();
+            item = new HttpItem()
+            {
+                URL = "http://10.254.0.1/index.asp",
+            };
+            result = http.GetHtml(item);//目前这个里面是未登入的状态
+                                        //表示访问成功，具体的大家就参考HttpStatusCode类
+            webbrow webBrow = new webbrow(item.URL);
+            System.Diagnostics.Process process = System.Diagnostics.Process.Start("iexplore.exe", item.URL);
+            item = new HttpItem()
+            {
+                URL = "http://10.254.0.1/web/sysinfo/baseinfo.asp",
+            };
+            result = http.GetHtml(item);
+            //richTextBox1.Text = result.
+
+            //webBrow.Show();
+            //调用IE浏览器
+            //System.Diagnostics.Process.Start("iexplore.exe", item.URL);
+
+            //调用系统默认的浏览器
+            //System.Diagnostics.Process.Start( item.URL);
+            //Uri uri = new Uri("http://192.168.253.200/login.asp?password=1234.abcd");
+            //HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            //var cache = new CredentialCache();
+            //cache.Add(uri, "Basic", new NetworkCredential("admin", "admin"));
+            //request.Credentials = cache;
+            //HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            //StreamReader read = new StreamReader(response.GetResponseStream(), Encoding.Default);
+            //string text = read.ReadToEnd();
+            //richTextBox1.Text=text;
+        }
+        void StatusStrip1ItemClicked(object sender, ToolStripItemClickedEventArgs e)
 		{
 			
 		}
 		void Button4Click(object sender, EventArgs e)
 		{
-//			SetNetworkAdapter();
-//			MessageBox.Show("dd");
-			loadinterface();
-//			GetIP6();
+            CmdHelper ch = new CmdHelper();
+            string output = "";
+            CmdHelper.RunCmd(tboxAddress.Text.Trim(), out output);
+            richTextBox1.Text = output;
+			//GetCmd();
 		}
-		private void GetIP6()
+		private void GetCmd()
 		{
 			Process cmd = new Process();
 			cmd.StartInfo.FileName = "ipconfig.exe";//设置程序名
@@ -361,32 +475,61 @@ namespace server
 							listBox2.Items.Add( ipadd.Address.ToString()+adapter.NetworkInterfaceType.ToString());//获取ip
 					
 					}
-//				}
+			}
 				
 			}
-//			foreach (NetworkInterface adapter in nics)
-//			{
-//				//判断是否为以太网卡
-//				//Wireless80211         无线网卡    Ppp     宽带连接
-//				//Ethernet              以太网卡
-//				//这里篇幅有限贴几个常用的，其他的返回值大家就自己百度吧！
-//				if (adapter.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
-//				{
-//					//获取以太网卡网络接口信息
-//					IPInterfaceProperties ip = adapter.GetIPProperties();
-//					//获取单播地址集
-//					UnicastIPAddressInformationCollection ipCollection = ip.UnicastAddresses;
-//					foreach (UnicastIPAddressInformation ipadd in ipCollection)
-//					{
-//						//InterNetwork    IPV4地址      InterNetworkV6        IPV6地址
-//						//Max            MAX 位址
-//						if (ipadd.Address.AddressFamily == AddressFamily.InterNetwork)
-//							//判断是否为ipv4
-//							label1.Text = ipadd.Address.ToString();//获取ip
-//					}
-//				}
-		}
-		static void SetNetworkAdapter()
+        #region 方法
+        /// <summary>
+        /// 绑定Wireless,Ehternet类型 UP的配制器
+        /// </summary>
+        /// <returns></returns>
+        private void BindEthernetWirelessAdaptersUP()
+        {
+            NetworkAdapterUtil util = new NetworkAdapterUtil();
+            List<NetworkAdapter> lists = util.GetEthernetWirelessNetworkAdaptersUP();
+
+            cbxNetworkAdapter.DataSource = lists; //重新绑定数据
+
+            if (cbxNetworkAdapter != null && cbxNetworkAdapter.Items.Count > selectIndex)
+            {
+                cbxNetworkAdapter.SelectedIndex = selectIndex;
+            }
+        }
+
+        /// <summary>
+        /// 绑定所有适配器
+        /// </summary>
+        private void BindAllAdapters()
+        {
+
+            NetworkAdapterUtil util = new NetworkAdapterUtil();
+            List<NetworkAdapter> lists = util.GetAllNetworkAdapters(); //得到所有适配器;
+
+            cbxNetworkAdapter.DataSource = lists; //重新绑定数据
+
+            if (cbxNetworkAdapter != null && cbxNetworkAdapter.Items.Count > selectIndex)
+            {
+                cbxNetworkAdapter.SelectedIndex = selectIndex;
+            }
+        }
+
+        /// <summary>
+        /// 绑定适配器,会根据state的值绑定
+        /// </summary>
+        private void BindAdapters()
+        {
+
+            if (state == AdapaterState.All)
+            {
+                BindAllAdapters();
+            }
+            else if (state == AdapaterState.EthernetWirelessUseing)
+            {
+                BindEthernetWirelessAdaptersUP();
+            }
+        }
+        #endregion
+        static void SetNetworkAdapter()
 		{
 			ManagementBaseObject inPar = null;
 			ManagementBaseObject outPar = null;
@@ -421,8 +564,9 @@ namespace server
 		}
 		void ListBox2SelectedIndexChanged(object sender, EventArgs e)
 		{
-			
-		}
+            tboxAddress.Text = listBox2.SelectedItem.ToString();
+
+        }
 		void ToolStripDropDownButton1Click(object sender, EventArgs e)
 		{
 			this.listBox1.Items.Clear();
@@ -430,5 +574,203 @@ namespace server
 			this.listBox4.Items.Clear();
 			this.listBox5.Items.Clear();
 		}
-	}
-}
+
+        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
+
+        private void button11_Click(object sender, EventArgs e)
+        {
+            Process cmd = new Process();
+            cmd.StartInfo.FileName = "cmd.exe";
+            cmd.Start();
+        }
+
+        private void label11_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnSetAutoIPAddress_Click(object sender, EventArgs e)
+        {
+            NetworkAdapter adapter = cbxNetworkAdapter.SelectedItem as NetworkAdapter; //获取到选中的适配器
+            if (adapter == null) MessageBox.Show("请先选择适配器");
+            selectIndex = cbxNetworkAdapter.SelectedIndex; //控件cbxNetworkAdapter选中的Index,用户重新加载再选中
+
+            if (adapter.EnableDHCP()) //设置自动获取IP地址
+            {
+                MessageBox.Show("设置自动获取IP成功");
+                BindAdapters();////绑定适配器
+            }
+            else
+            {
+                MessageBox.Show("设置自动获取IP失败");
+
+            }
+        }
+        //获取所有启用网络适配器地址 事件， 如果网卡是禁用的是获取不到
+        private void tsBtnDisplayAllNetwork_Click(object sender, EventArgs e)
+        {
+            tsBtnUsingNetwork.BackColor = SystemColors.Control;
+            tsBtnDisableAdapters.BackColor = Color.SkyBlue;
+            state = AdapaterState.All;
+            selectIndex = 0;
+            BindAdapters();
+        }
+
+        private void tsBtnDisableAdapters_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                new NetworkAdapterUtil().DisableAllAdapters();
+                MessageBox.Show("禁用所有网络连接成功");
+                // BindAdapters(); //绑定适配器
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void tsBtnUsingNetwork_Click(object sender, EventArgs e)
+        {
+            tsBtnUsingNetwork.BackColor = Color.SkyBlue;
+            tsBtnDisplayAllNetwork.BackColor = SystemColors.Control;
+
+
+            state = AdapaterState.EthernetWirelessUseing;
+
+            BindAdapters();  //重新获取适配器信息并绑定
+        }
+
+        private void tabControl1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tabControl1_Selecting(object sender, TabControlCancelEventArgs e)
+        {
+            if(e.TabPage.Text=="网络连接")
+            {
+                tsBtnUsingNetwork.BackColor = Color.SkyBlue;
+                cbxNetworkAdapter.DisplayMember = "Description";
+                state = AdapaterState.EthernetWirelessUseing;
+                BindAdapters();
+            }
+        }
+
+        private void btnGetIPAddress_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                NetworkAdapter adapter = cbxNetworkAdapter.SelectedItem as NetworkAdapter;
+                if (adapter == null) MessageBox.Show("请先选择适配器");
+                selectIndex = cbxNetworkAdapter.SelectedIndex; //获取适配器的index,为了重新加载再选上这
+
+                string ipAddress = txtIpAddress.Text.Trim(); //IP地址
+                string subMask = txtMask.Text.Trim(); //子网掩码           
+                string getWay = txtGetway.Text.Trim(); //网关             
+                string dnsMain = txtDnsMain.Text.Trim(); //主DNS
+                string dnsBackup = txtDnsBackup.Text.Trim(); //备用DNS
+                string reslut = adapter.IsIPAddress(ipAddress, subMask, getWay, dnsMain, dnsBackup); //检查输入设置的IP地址，如果返回空，表示成功，否则就失败
+                if (!string.IsNullOrEmpty(reslut))
+                {
+                    MessageBox.Show(reslut);
+                    return;
+                }
+
+                if (!adapter.SetIPAddressAndSubMask(ipAddress, subMask))//设置IP地址和子网掩码
+                {
+                    MessageBox.Show("设置IP地址和子网掩码失败");
+                    return;
+                }
+
+                if (!string.IsNullOrEmpty(getWay))
+                {
+                    if (!adapter.SetGetWayAddress(getWay)) //设置网关地址
+                    {
+                        MessageBox.Show("设置网关地址失败");
+                        return;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(dnsMain))
+                {
+                    if (!adapter.SetDNSAddress(dnsMain, dnsBackup)) //设置DNS地址;
+                    {
+                        MessageBox.Show("设置DNS失败");
+                        return;
+                    }
+                }
+
+                MessageBox.Show("设置IP地址成功");
+                BindAdapters(); //绑定适配器
+
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Catch Exception!!!");
+            }
+
+        }
+
+        private void cbxNetworkAdapter_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            NetworkAdapter adapter = cbxNetworkAdapter.SelectedItem as NetworkAdapter; //获取到选中的适配器
+            txtIpAddress.Text = adapter.IpAddress;
+            txtGetway.Text = adapter.Getway;
+            txtMask.Text = adapter.Mask;
+            txtPhycilAddress.Text = adapter.MacAddres;
+            txtDnsMain.Text = adapter.DnsMain;
+            txtDnsBackup.Text = adapter.DnsBackup;
+            txtDhcpServer.Text = adapter.DhcpServer;
+            if (adapter.IsDhcpEnabled)
+            {
+                cbxGetIPMethod.SelectedIndex = 0;
+            }
+            else
+            {
+                cbxGetIPMethod.SelectedIndex = 1;
+            }
+        }
+
+        private void cbxGetIPMethod_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtDhcpServer_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tsBtnEnableAdapters_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                new NetworkAdapterUtil().EnableAllAdapters();
+                MessageBox.Show("启用所有网络连接成功");
+                //  BindAdapters(); //绑定适配器
+
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void tsBtnAllIPReport_Click(object sender, EventArgs e)
+        {
+            FrmReport frmReport = new FrmReport();
+            frmReport.Show();
+        }
+    }
+
+
+
+
+    }
+
+#endregion
